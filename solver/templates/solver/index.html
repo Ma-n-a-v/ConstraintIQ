@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ConstraintIQ</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg: #0a0a0f;
+  --bg2: #111118;
+  --bg3: #1a1a24;
+  --bg4: #22222f;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.15);
+  --text: #e8e8f0;
+  --text2: #8f8fa6;
+  --text3: #55556a;
+  --accent: #6366f1;
+  --accent2: #a89dff;
+  --accent-bg: rgba(124,108,252,0.14);
+  --green: #3ecf8e;
+  --green-bg: rgba(62,207,142,0.12);
+  --amber: #f0a429;
+  --amber-bg: rgba(240,164,41,0.12);
+  --red: #f06070;
+  --red-bg: rgba(240,96,112,0.12);
+  --mono: "IBM Plex Mono", monospace;
+  --display: "Inter", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--display);
+  height: 100vh;
+  overflow: hidden;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(124,108,252,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,108,252,0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 900px;
+  height: 500px;
+  background: radial-gradient(ellipse, rgba(124,108,252,0.12), transparent 70%);
+  pointer-events: none;
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  overflow: hidden;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  font-weight: 800;
+  font-size: 1.25rem;
+}
+
+.logo span {
+  color: var(--accent2);
+}
+
+.nav-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--accent-bg);
+  border: 1px solid rgba(124,108,252,0.3);
+  color: var(--accent2);
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.hero {
+  margin: 1rem 0 1.15rem;
+}
+
+.hero h1 {
+  font-size: 2.25rem;
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.hero em {
+  font-style: normal;
+  color: transparent;
+  background: linear-gradient(135deg, var(--accent), var(--accent2), var(--green));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.hero p {
+  margin-top: 0.45rem;
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+
+.solver-layout {
+  display: grid;
+  grid-template-columns: 430px 360px 1fr;
+  gap: 1.25rem;
+  height: calc(100vh - 150px);
+  align-items: stretch;
+}
+
+.grid-container,
+.control-panel,
+.code-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  height: 100%;
+}
+
+.grid-container {
+  padding: 1.25rem;
+}
+
+.section-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+table#grid {
+  border-collapse: collapse;
+  margin: 0 auto;
+}
+
+table#grid td {
+  width: 36px;
+  height: 36px;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  transition: background 0.12s, color 0.12s;
+}
+
+table#grid td.given {
+  color: var(--text);
+}
+
+table#grid td.trying {
+  background: var(--accent-bg);
+  color: var(--accent2);
+  box-shadow: inset 0 0 0 1px rgba(124,108,252,0.5);
+}
+
+table#grid td.placed {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+table#grid td.backtracking {
+  background: var(--amber-bg);
+  color: var(--amber);
+}
+
+table#grid tr:nth-child(3n) td {
+  border-bottom: 2px solid rgba(255,255,255,0.22);
+}
+
+table#grid tr:nth-child(1) td {
+  border-top: 2px solid rgba(255,255,255,0.22);
+}
+
+table#grid td:nth-child(3n) {
+  border-right: 2px solid rgba(255,255,255,0.22);
+}
+
+table#grid td:nth-child(1) {
+  border-left: 2px solid rgba(255,255,255,0.22);
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.stat-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.stat-val {
+  font-family: var(--mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.stat-lbl {
+  margin-top: 0.25rem;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+
+.legend {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.55rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.ld-given { background: rgba(255,255,255,0.25); }
+.ld-try { background: var(--accent); }
+.ld-placed { background: var(--green); }
+.ld-back { background: var(--amber); }
+
+.control-panel {
+  padding: 1.25rem;
+}
+
+.algo-select-wrap {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.algo-select-wrap::after {
+  content: "▾";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text2);
+  pointer-events: none;
+}
+
+select,
+input[type="range"] {
+  width: 100%;
+}
+
+select {
+  appearance: none;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 0.75rem 2.25rem 0.75rem 0.85rem;
+  outline: none;
+}
+
+.algo-desc {
+  background: var(--bg3);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  padding: 0.75rem;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--text2);
+  margin-bottom: 1rem;
+}
+
+.speed-row {
+  margin-bottom: 1.1rem;
+}
+
+.speed-top {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  margin-bottom: 0.5rem;
+}
+
+input[type="range"] {
+  appearance: none;
+  height: 4px;
+  background: var(--bg4);
+  border-radius: 4px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+.btn-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+}
+
+.btn {
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.7rem;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--bg3);
+}
+
+.btn.solve {
+  grid-column: span 2;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn.danger {
+  color: var(--red);
+  border-color: rgba(240,96,112,0.35);
+}
+
+.status-bar {
+  margin-top: 1rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text3);
+}
+
+.status-dot.running {
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  animation: pulse 1s infinite;
+}
+
+.status-dot.done {
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+}
+
+@keyframes pulse {
+  50% { opacity: 0.45; }
+}
+
+.code-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.code-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot.r { background: #ff5f57; }
+.dot.y { background: #ffbd2e; }
+.dot.g { background: #28c840; }
+
+.code-filename {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  margin-left: 0.5rem;
+}
+
+.code-algo-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent2);
+  background: var(--accent-bg);
+  border: 1px solid rgba(124,108,252,0.25);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.code-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 1.25rem;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+.code-line {
+  display: flex;
+  gap: 1rem;
+  border-radius: 5px;
+}
+
+.code-line.active {
+  background: rgba(124,108,252,0.13);
+  margin: 0 -0.5rem;
+  padding: 0 0.5rem;
+}
+
+.line-num {
+  min-width: 22px;
+  text-align: right;
+  color: var(--text3);
+  user-select: none;
+}
+
+.line-code {
+  color: var(--text2);
+}
+
+.code-line.active .line-code {
+  color: var(--text);
+}
+
+.kw { color: #c792ea; }
+.fn { color: var(--green); }
+.hl { color: var(--amber); }
+.cm { color: var(--text3); }
+.str { color: #f07178; }
+
+.trace-box {
+  border-top: 1px solid var(--border);
+  padding: 0.9rem 1.25rem;
+  height: 160px;
+  overflow-y: auto;
+  background: rgba(0,0,0,0.12);
+}
+
+.trace-progress {
+  border-top: 1px solid var(--border);
+  padding: 0.7rem 1.25rem;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent2);
+  background: rgba(124,108,252,0.08);
+}
+
+.trace-line {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text2);
+  margin-bottom: 0.35rem;
+}
+
+.trace-assign { color: var(--green); }
+.trace-backtrack { color: var(--amber); }
+.trace-select { color: var(--accent2); }
+.trace-domain { color: #c792ea; }
+
+@media (max-width: 1100px) {
+  body {
+    overflow-y: auto;
+  }
+
+  .page {
+    height: auto;
+    overflow: visible;
+  }
+
+  .solver-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+</style>
+</head>
+
+<body>
+{% csrf_token %}
+
+<div class="page">
+
+  <nav>
+    <div class="logo">Constraint<span>IQ</span></div>
+    <div class="nav-badge">LIVE DEMO v1.0</div>
+  </nav>
+
+  <div class="hero">
+    <h1>Watch an algorithm <em>think in real time</em></h1>
+    <p>// pure CSP Algorithm engine — AC-3 · MRV · LCV · backtracking · no ML, no AI wrappers</p>
+  </div>
+
+  <div class="solver-layout">
+
+    <div class="grid-container">
+      <div class="section-title">// puzzle board</div>
+
+      <table id="grid"></table>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-val" id="st-steps">0</div>
+          <div class="stat-lbl">Steps</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-val" id="st-back">0</div>
+          <div class="stat-lbl">Backtracks</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-val" id="st-time">0ms</div>
+          <div class="stat-lbl">Time</div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot ld-given"></div>Given</div>
+        <div class="legend-item"><div class="legend-dot ld-try"></div>Trying</div>
+        <div class="legend-item"><div class="legend-dot ld-placed"></div>Placed</div>
+        <div class="legend-item"><div class="legend-dot ld-back"></div>Backtrack</div>
+      </div>
+    </div>
+
+    <div class="control-panel">
+      <div class="section-title">// controls</div>
+
+      <div class="algo-select-wrap">
+        <select id="algorithm" onchange="onAlgoChange()">
+          <option value="backtracking">Backtracking</option>
+          <option value="ac3">AC3 + Backtracking</option>
+          <option value="ac3_lcv">AC3 + LCV</option>
+          <option value="ac3_mrv">AC3 + MRV</option>
+          <option value="ac3_mrv_lcv">AC3 + MRV + LCV</option>
+        </select>
+      </div>
+
+      <div class="algo-desc" id="algo-desc">
+        Recursively tries values and backtracks when a path creates a contradiction.
+      </div>
+
+      <div class="speed-row">
+        <div class="speed-top">
+          <span>Speed</span>
+          <span id="speed-lbl">Normal</span>
+        </div>
+        <input type="range" id="speed" min="1" max="5" value="3" step="1" oninput="onSpeed(this.value)" />
+      </div>
+
+      <div class="btn-grid">
+        <button class="btn solve" id="solveBtn" onclick="toggleAnimation()">
+            ▶ Solve
+        </button>
+        <button class="btn" onclick="loadSamplePuzzle()">⟳ New puzzle</button>
+        <button class="btn danger" onclick="clearBoard()">✕ Reset</button>
+      </div>
+
+      <div class="status-bar">
+        <div class="status-dot" id="status-dot"></div>
+        <span id="status-msg">Choose an algorithm and press Solve</span>
+      </div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-header">
+        <div class="code-header-left">
+          <div class="dot r"></div>
+          <div class="dot y"></div>
+          <div class="dot g"></div>
+          <span class="code-filename">solver.py</span>
+        </div>
+        <div class="code-algo-badge" id="code-badge">backtracking</div>
+      </div>
+
+      <div class="code-body" id="code-body"></div>
+
+        <div class="trace-progress" id="traceProgress">0 / 0 steps</div>
+        <div class="trace-box" id="traceBox">
+        <p class="trace-line">AI decision trace will appear here.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+//animations variables     
+let animationSteps = [];
+let animationIndex = 0;
+let animationTimer = null;
+let isAnimating = false;
+let isPaused = false;
+let currentPuzzleIndex = 0;
+
+const ALGO_DESCRIPTIONS = {
+  backtracking: "Classic depth-first search. The solver tries legal values and backtracks when a path fails.",
+  ac3: "Uses AC3 constraint propagation before and during backtracking to reduce possible values.",
+  ac3_lcv: "Uses AC3 and Least Constraining Value to try values that restrict neighbors the least.",
+  ac3_mrv: "Uses AC3 and Minimum Remaining Values to choose the most constrained cell first.",
+  ac3_mrv_lcv: "Combines AC3, MRV, and LCV for stronger search-space reduction."
+};
+
+const PUZZLES = [
+  [
+    ["5","3",".",".","7",".",".",".","."],
+    ["6",".",".","1","9","5",".",".","."],
+    [".","9","8",".",".",".",".","6","."],
+    ["8",".",".",".","6",".",".",".","3"],
+    ["4",".",".","8",".","3",".",".","1"],
+    ["7",".",".",".","2",".",".",".","6"],
+    [".","6",".",".",".",".","2","8","."],
+    [".",".",".","4","1","9",".",".","5"],
+    [".",".",".",".","8",".",".","7","9"]
+  ],
+  [
+    [".",".",".","2","6",".","7",".","1"],
+    ["6","8",".",".","7",".",".","9","."],
+    ["1","9",".",".",".","4","5",".","."],
+    ["8","2",".","1",".",".",".","4","."],
+    [".",".","4","6",".","2","9",".","."],
+    [".","5",".",".",".","3",".","2","8"],
+    [".",".","9","3",".",".",".","7","4"],
+    [".","4",".",".","5",".",".","3","6"],
+    ["7",".","3",".","1","8",".",".","."]
+  ],
+  [
+    [".",".",".",".",".",".","2",".","."],
+    [".","8",".","4",".",".",".",".","."],
+    [".","5",".",".",".","7",".",".","9"],
+    [".",".",".",".","5",".","8","3","."],
+    ["7",".",".",".",".","3",".",".","."],
+    [".",".","3",".","1",".","6",".","."],
+    [".",".",".","7",".",".","1",".","5"],
+    [".","6",".",".",".","4",".",".","."],
+    [".",".",".",".",".",".",".","7","3"]
+  ],
+  [
+    ["2",".",".",".","8",".","3",".","."],
+    [".","6",".",".","7",".",".","8","4"],
+    [".","3",".","5",".",".","2",".","9"],
+    [".",".",".","1",".","5","4",".","8"],
+    [".",".",".",".",".",".",".",".","."],
+    ["4",".","2","7",".","6",".",".","."],
+    ["3",".","1",".",".","7",".","4","."],
+    ["7","2",".",".","4",".",".","6","."],
+    [".",".","4",".","1",".",".",".","3"]
+  ],
+  [
+    [".",".","5","3",".",".",".",".","."],
+    ["8",".",".",".",".",".",".","2","."],
+    [".","7",".",".","1",".","5",".","."],
+    ["4",".",".",".",".","5","3",".","."],
+    [".","1",".",".","7",".",".",".","6"],
+    [".",".","3","2",".",".",".","8","."],
+    [".","6",".","5",".",".",".",".","9"],
+    [".",".","4",".",".",".",".","3","."],
+    [".",".",".",".",".","9","7",".","."]
+  ],
+  [
+    [".",".",".",".",".",".",".","1","2"],
+    [".",".",".",".",".",".",".",".","3"],
+    [".",".","2","3",".",".","4",".","."],
+    [".",".","1","8",".",".",".",".","5"],
+    [".","6",".",".","7",".","8",".","."],
+    [".",".",".",".",".","9",".",".","."],
+    [".",".","8","5",".",".",".",".","."],
+    ["9",".",".",".","4",".","5",".","."],
+    ["4","7",".",".",".","6",".",".","."]
+  ]
+];
+
+const CODE_SNIPPETS = {
+  backtracking: [
+    [1, '<span class="kw">def</span> <span class="fn">backtrack</span>(cell):'],
+    [2, '  <span class="kw">if</span> all cells solved: <span class="kw">return</span> <span class="hl">True</span>'],
+    [3, '  select next empty cell'],
+    [4, '  <span class="kw">for</span> value <span class="kw">in</span> 1..9:'],
+    [5, '    <span class="kw">if</span> value is valid:'],
+    [6, '      place value'],
+    [7, '      <span class="kw">if</span> <span class="fn">backtrack</span>(next): <span class="kw">return</span> <span class="hl">True</span>'],
+    [8, '      remove value <span class="cm"># backtrack</span>'],
+    [9, '  <span class="kw">return</span> <span class="hl">False</span>']
+  ],
+
+  ac3: [
+    [1, '<span class="kw">def</span> <span class="fn">solve</span>(board):'],
+    [2, '  csp, assigned = build CSP problem'],
+    [3, '  <span class="fn">AC3</span>(csp, arcs from assigned cells)'],
+    [4, '  uncertain = cells with domain size > 1'],
+    [5, '  <span class="kw">return</span> <span class="fn">backtrack</span>(csp, uncertain)'],
+    [6, ''],
+    [7, '<span class="kw">def</span> <span class="fn">backtrack</span>(csp, uncertain):'],
+    [8, '  <span class="kw">if</span> no uncertain cells: <span class="kw">return</span> <span class="hl">True</span>'],
+    [9, '  cell = select cell using default order'],
+    [10, '  <span class="kw">for</span> value <span class="kw">in</span> domain[cell]:'],
+    [11, '    assign cell = value'],
+    [12, '    <span class="kw">if</span> <span class="fn">AC3</span>(csp, arcs from cell):'],
+    [13, '      <span class="kw">if</span> <span class="fn">backtrack</span>(csp, uncertain): <span class="kw">return</span> <span class="hl">True</span>'],
+    [14, '    restore removed domains'],
+    [15, '  <span class="kw">return</span> <span class="hl">False</span>']
+  ],
+
+  ac3_lcv: [
+    [1, '<span class="kw">def</span> <span class="fn">solve</span>(board):'],
+    [2, '  csp, assigned = build CSP problem'],
+    [3, '  <span class="fn">AC3</span>(csp, arcs from assigned cells)'],
+    [4, '  uncertain = cells with domain size > 1'],
+    [5, '  <span class="kw">return</span> <span class="fn">backtrack</span>(csp, uncertain)'],
+    [6, ''],
+    [7, '<span class="kw">def</span> <span class="fn">order_values</span>(cell):'],
+    [8, '  <span class="kw">return</span> sort domain by <span class="fn">count_conflict</span>()'],
+    [9, '  <span class="cm"># least constraining value first</span>'],
+    [10, ''],
+    [11, '<span class="kw">def</span> <span class="fn">backtrack</span>(csp, uncertain):'],
+    [12, '  cell = select cell using default order'],
+    [13, '  values = <span class="fn">order_values</span>(cell)'],
+    [14, '  <span class="kw">for</span> value <span class="kw">in</span> values:'],
+    [15, '    assign cell = value'],
+    [16, '    <span class="kw">if</span> <span class="fn">AC3</span>(csp, arcs from cell):'],
+    [17, '      search deeper'],
+    [18, '    restore domains if value fails']
+  ],
+
+  ac3_mrv: [
+    [1, '<span class="kw">def</span> <span class="fn">solve</span>(board):'],
+    [2, '  csp, assigned = build CSP problem'],
+    [3, '  <span class="fn">AC3</span>(csp, arcs from assigned cells)'],
+    [4, '  uncertain = cells with domain size > 1'],
+    [5, '  <span class="kw">return</span> <span class="fn">backtrack</span>(csp, uncertain)'],
+    [6, ''],
+    [7, '<span class="kw">def</span> <span class="fn">select_variable</span>(uncertain):'],
+    [8, '  <span class="kw">return</span> cell with smallest domain'],
+    [9, '  <span class="cm"># Minimum Remaining Values</span>'],
+    [10, ''],
+    [11, '<span class="kw">def</span> <span class="fn">backtrack</span>(csp, uncertain):'],
+    [12, '  <span class="kw">if</span> no uncertain cells: <span class="kw">return</span> <span class="hl">True</span>'],
+    [13, '  cell = <span class="fn">select_variable</span>(uncertain)'],
+    [14, '  <span class="kw">for</span> value <span class="kw">in</span> domain[cell]:'],
+    [15, '    assign cell = value'],
+    [16, '    <span class="kw">if</span> <span class="fn">AC3</span>(csp, arcs from cell):'],
+    [17, '      search deeper'],
+    [18, '    restore domains if value fails']
+  ],
+
+  ac3_mrv_lcv: [
+    [1, '<span class="kw">def</span> <span class="fn">solve</span>(board):'],
+    [2, '  csp, assigned = build CSP problem'],
+    [3, '  <span class="fn">AC3</span>(csp, arcs from assigned cells)'],
+    [4, '  uncertain = cells with domain size > 1'],
+    [5, '  <span class="kw">return</span> <span class="fn">backtrack</span>(csp, uncertain)'],
+    [6, ''],
+    [7, '<span class="kw">def</span> <span class="fn">select_variable</span>(uncertain):'],
+    [8, '  <span class="kw">return</span> cell with smallest domain <span class="cm"># MRV</span>'],
+    [9, ''],
+    [10, '<span class="kw">def</span> <span class="fn">order_values</span>(cell):'],
+    [11, '  <span class="kw">return</span> values sorted by lowest conflict count <span class="cm"># LCV</span>'],
+    [12, ''],
+    [13, '<span class="kw">def</span> <span class="fn">backtrack</span>(csp, uncertain):'],
+    [14, '  cell = <span class="fn">select_variable</span>(uncertain)'],
+    [15, '  values = <span class="fn">order_values</span>(cell)'],
+    [16, '  <span class="kw">for</span> value <span class="kw">in</span> values:'],
+    [17, '    assign cell = value'],
+    [18, '    <span class="kw">if</span> <span class="fn">AC3</span>(csp, arcs from cell):'],
+    [19, '      continue search'],
+    [20, '    restore domains and try next value']
+  ]
+};
+
+function getCSRFToken() {
+  return document.querySelector("[name=csrfmiddlewaretoken]").value;
+}
+
+//animation functions
+function getAnimationDelay() {
+  const speed = Number(document.getElementById("speed").value);
+
+  const delays = {
+    1: 700,
+    2: 350,
+    3: 120,
+    4: 45,
+    5: 5
+  };
+
+  return delays[speed];
+}
+
+function applyAnimationStep(step) {
+    if (!step.cell) {
+        updateTrace(step.message || "Solver made a global decision.", "trace-domain");
+        return;
+    }
+
+  const row = step.cell[0];
+  const col = step.cell[1];
+  const cell = document.getElementById(`cell-${row}-${col}`);
+
+  if (!cell) return;
+
+  cell.className = "";
+
+  if (step.type === "assign") {
+    cell.textContent = step.value;
+    cell.classList.add("trying");
+    updateTrace(step.message, "trace-assign");
+    renderCode(5);
+  }
+
+  else if (step.type === "backtrack") {
+    cell.textContent = "";
+    cell.classList.add("backtracking");
+    updateTrace(step.message, "trace-backtrack");
+    renderCode(7);
+  }
+
+  else if (
+    step.type === "select_cell" ||
+    step.type === "mrv_select"
+  ) {
+    cell.classList.add("trying");
+    updateTrace(step.message, "trace-select");
+    renderCode(2);
+  }
+
+  else if (
+    step.type === "domain_reduction" ||
+    step.type === "lcv_order"
+  ) {
+    cell.classList.add("trying");
+    updateTrace(step.message, "trace-domain");
+    renderCode(3);
+  }
+
+  setTimeout(restoreGivenStyles, 80);
+}
+
+function runAnimation() {
+    if (!isAnimating || isPaused) return;
+
+    if (animationIndex >= animationSteps.length) {
+        isAnimating = false;
+        document.getElementById("solveBtn").innerHTML = "▶ Solve";
+        if (window.latestSolvedBoard) {
+            fillBoard(window.latestSolvedBoard);
+        }
+        setStatus("Animation completed. Final solution displayed.", "done");
+        updateTrace("Final solved board displayed.", "trace-assign");
+        return;
+    }   
+
+  const step = animationSteps[animationIndex];
+  applyAnimationStep(step);
+  updateTraceProgress(animationIndex + 1, animationSteps.length);
+
+  animationIndex++;
+
+  animationTimer = setTimeout(runAnimation, getAnimationDelay());
+}
+
+function toggleAnimation() {
+    const board = readBoard();
+    const isEmpty = board.flat().every(value => value === ".");
+
+    if (isEmpty) {
+        clearTrace();
+        updateTrace("Please load or enter a puzzle before solving.", "trace-backtrack");
+        setStatus("No puzzle found.", "");
+        return;
+    }
+
+  const btn = document.getElementById("solveBtn");
+
+  // START
+  if (!isAnimating && animationIndex === 0) {
+    solveSudoku();
+    btn.innerHTML = "⏸ Pause";
+    return;
+  }
+
+  // PAUSE
+  if (isAnimating && !isPaused) {
+    isPaused = true;
+    clearTimeout(animationTimer);
+
+    btn.innerHTML = "▶ Resume";
+
+    setStatus("Animation paused.", "");
+    return;
+  }
+
+  // RESUME
+  if (isAnimating && isPaused) {
+    isPaused = false;
+
+    btn.innerHTML = "⏸ Pause";
+
+    runAnimation();
+  }
+}
+
+function restoreGivenStyles() {
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const cell = document.getElementById(`cell-${r}-${c}`);
+
+      if (cell.textContent.trim() && cell.className === "") {
+        cell.classList.add("placed");
+      }
+    }
+  }
+}
+
+//animation functions end here
+
+function buildGrid() {
+  const table = document.getElementById("grid");
+  table.innerHTML = "";
+
+  for (let r = 0; r < 9; r++) {
+    const tr = document.createElement("tr");
+
+    for (let c = 0; c < 9; c++) {
+      const td = document.createElement("td");
+      td.id = `cell-${r}-${c}`;
+      td.contentEditable = true;
+      td.addEventListener("input", () => {
+        td.textContent = td.textContent.replace(/[^1-9]/g, "").slice(0, 1);
+      });
+      tr.appendChild(td);
+    }
+
+    table.appendChild(tr);
+  }
+}
+
+function readBoard() {
+  const board = [];
+
+  for (let r = 0; r < 9; r++) {
+    const row = [];
+
+    for (let c = 0; c < 9; c++) {
+      const value = document.getElementById(`cell-${r}-${c}`).textContent.trim();
+      row.push(value || ".");
+    }
+
+    board.push(row);
+  }
+
+  return board;
+}
+
+function fillBoard(board) {
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const cell = document.getElementById(`cell-${r}-${c}`);
+      cell.textContent = board[r][c] === "." ? "" : board[r][c];
+      if (board[r][c] !== ".") cell.className = "placed";
+    }
+  }
+}
+
+function markGivenCells() {
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const cell = document.getElementById(`cell-${r}-${c}`);
+      if (cell.textContent.trim()) cell.className = "given";
+    }
+  }
+}
+
+function renderCode(activeIndex = -1) {
+  const algorithm = document.getElementById("algorithm").value;
+  const snippet = CODE_SNIPPETS[algorithm];
+  document.getElementById("code-badge").textContent = algorithm;
+
+  document.getElementById("code-body").innerHTML = snippet.map((line, index) => {
+    return `
+      <div class="code-line ${index === activeIndex ? "active" : ""}">
+        <span class="line-num">${line[0]}</span>
+        <span class="line-code">${line[1]}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+function updateTrace(message, type = "") {
+  const traceBox = document.getElementById("traceBox");
+  const line = document.createElement("p");
+  line.className = `trace-line ${type}`;
+  line.textContent = message;
+  traceBox.appendChild(line);
+  traceBox.scrollTop = traceBox.scrollHeight;
+}
+
+function clearTrace() {
+  document.getElementById("traceBox").innerHTML = "";
+}
+
+function setStatus(message, state = "") {
+  document.getElementById("status-msg").textContent = message;
+  document.getElementById("status-dot").className = `status-dot ${state}`;
+}
+
+function updateStats(metrics) {
+  document.getElementById("st-steps").textContent = metrics.steps || 0;
+  document.getElementById("st-back").textContent = metrics.backtracks || 0;
+  document.getElementById("st-time").textContent = `${Math.round((metrics.time_taken || 0) * 1000)}ms`;
+}
+
+function onAlgoChange() {
+  const algorithm = document.getElementById("algorithm").value;
+  document.getElementById("algo-desc").textContent = ALGO_DESCRIPTIONS[algorithm];
+  renderCode();
+  setStatus("Algorithm changed. Press Solve.", "");
+}
+
+function onSpeed(value) {
+  const labels = ["", "Glacial", "Slow", "Normal", "Fast", "Instant"];
+  document.getElementById("speed-lbl").textContent = labels[value];
+}
+
+async function solveSudoku() {
+  const algorithm = document.getElementById("algorithm").value;
+  const board = readBoard();
+
+  markGivenCells();
+  clearTrace();
+  renderCode(0);
+  setStatus("Solving puzzle...", "running");
+
+  updateTrace("Sending puzzle to Django solver...", "trace-select");
+
+  const response = await fetch("/solve/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCSRFToken()
+    },
+    body: JSON.stringify({
+      board,
+      algorithm
+    })
+  });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Solve error:", errorText);
+        updateTrace("Django returned an error. Check terminal for details.", "trace-backtrack");
+        setStatus("Solve failed.", "");
+        return;
+    }
+
+    const rawText = await response.text();
+    console.log("Raw response from Django:", rawText);
+    if (!rawText) {
+        updateTrace("Django returned an empty response. Check your terminal error.", "trace-backtrack");
+        setStatus("Backend error.", "");
+        return;
+    }
+    const data = JSON.parse(rawText);
+
+    window.latestSolvedBoard = data.solved_board;
+
+    updateStats(data.metrics);
+
+    animationSteps = data.steps || [];
+    animationIndex = 0;
+    isAnimating = true;
+
+    updateTraceProgress(0, animationSteps.length);
+
+    runAnimation();
+
+  renderCode(4);
+  updateTrace(`Algorithm used: ${data.metrics.algorithm}`, "trace-select");
+  updateTrace(`Solved: ${data.metrics.solved}`, "trace-assign");
+  updateTrace(`Steps recorded: ${data.metrics.steps}`, "trace-domain");
+  updateTrace(`Backtracks: ${data.metrics.backtracks}`, "trace-backtrack");
+  updateTrace(`Time taken: ${data.metrics.time_taken}s`, "trace-assign");
+
+  setStatus("Solved successfully.", "done");
+}
+
+function loadSamplePuzzle() {
+  clearTimeout(animationTimer);
+
+  animationSteps = [];
+  animationIndex = 0;
+  isAnimating = false;
+  isPaused = false;
+
+  document.getElementById("solveBtn").innerHTML = "▶ Solve";
+
+  const puzzle = PUZZLES[currentPuzzleIndex];
+
+  clearBoard();
+
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const cell = document.getElementById(`cell-${r}-${c}`);
+
+      if (puzzle[r][c] !== ".") {
+        cell.textContent = puzzle[r][c];
+        cell.className = "given";
+      }
+    }
+  }
+
+  clearTrace();
+  updateTrace(`Puzzle ${currentPuzzleIndex + 1} loaded.`, "trace-select");
+  setStatus(`Puzzle ${currentPuzzleIndex + 1} ready.`, "");
+
+  currentPuzzleIndex = (currentPuzzleIndex + 1) % PUZZLES.length;
+}
+
+
+function updateTraceProgress(current, total) {
+  document.getElementById("traceProgress").textContent =
+    `${current} / ${total} steps`;
+}
+
+function clearBoard() {
+  clearTimeout(animationTimer);
+    updateTraceProgress(0, 0);
+  animationSteps = [];
+  animationIndex = 0;
+  isAnimating = false;
+  isPaused = false;
+
+  document.getElementById("solveBtn").innerHTML = "▶ Solve";
+
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const cell = document.getElementById(`cell-${r}-${c}`);
+      cell.textContent = "";
+      cell.className = "";
+    }
+  }
+
+  updateStats({});
+  clearTrace();
+  updateTrace("Board cleared.", "trace-backtrack");
+  setStatus("Board cleared.", "");
+}
+
+buildGrid();
+renderCode();
+</script>
+
+</body>
+</html>
