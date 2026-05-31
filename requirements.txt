@@ -112,6 +112,7 @@ gitdb @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_82sn
 GitPython @ file:///opt/miniconda3/conda-bld/gitpython_1761291258924/work
 gmpy2 @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_51391juwln/croot/gmpy2_1738085477864/work
 greenlet @ file:///opt/miniconda3/conda-bld/greenlet_1757405399086/work
+gunicorn==26.0.0
 h11 @ file:///opt/miniconda3/conda-bld/h11_1761931258823/work
 h5py @ file:///opt/miniconda3/conda-bld/h5py_1763997333929/work
 HeapDict @ file:///Users/ktietz/demo/mc3/conda-bld/heapdict_1630598515714/work
