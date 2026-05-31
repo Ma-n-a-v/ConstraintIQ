@@ -38,7 +38,7 @@ def solve_sudoku(request):
         result = solver.solveSudoku(board)
         
         # Limit animation steps so browser does not crash
-        result["steps"] = result.get("steps", [])[:1100000]
+        result["steps"] = result.get("steps", [])[:800]
 
         return JsonResponse(result)
 
