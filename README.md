@@ -1,6 +1,8 @@
 # ConstraintIQ
 
-> Pure algorithm based (No AI wrapper) Sudoku Solver Visualization Platform using CSP, AC3, MRV, LCV, and Backtracking Algorithms
+> Pure algorithm based (No AI wrapper) Sudoku Solver Visualization Platform using CSP, AC3, MRV, LCV, and Backtracking Algorithms.
+>
+> Check it out here! https://constraintiq-nzxz.onrender.com/
 
 ConstraintIQ is an interactive Sudoku-solving visualization platform built with Python and Django.
 The project demonstrates how different Constraint Satisfaction Problem (CSP) algorithms solve Sudoku puzzles in real time through animated decision tracing, live code visualization, and algorithmic reasoning.
@@ -306,7 +308,7 @@ These metrics help compare algorithm efficiency visually.
 # 1. Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/ConstraintIQ.git
+git clone https://github.com/Ma-n-a-v/ConstraintIQ.git
 ```
 
 # 2. Move Into Project
